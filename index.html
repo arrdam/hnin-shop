@@ -3,59 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hnin Shop - Pro UI Fix</title>
+    <title>Hnin Shop - Professional UI</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
     <style>
-        :root { --primary: #FF9500; --bg: #0c0c0c; --card: #181818; --qr-bg: #222; }
+        :root { --primary: #FF9500; --bg: #0c0c0c; --card: #181818; --qr-bg: #222; --accent: #00d2ff; }
         body { margin: 0; font-family: 'Poppins', sans-serif; background: var(--bg); color: #fff; overflow-x: hidden; }
-        header { background: #111; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #222; position: sticky; top: 0; z-index: 1000; }
+        
+        /* Splash Screen */
+        #splash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: 0.5s; }
+        .loader { width: 48px; height: 48px; border: 5px solid #FFF; border-bottom-color: var(--primary); border-radius: 50%; display: inline-block; box-sizing: border-box; animation: rotation 1s linear infinite; }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        header { background: #111; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #222; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         .lang-btn { cursor: pointer; border-radius: 4px; width: 28px; height: 18px; object-fit: cover; border: 1.5px solid #444; transition: 0.3s; }
-        .lang-btn.active { border-color: var(--primary); transform: scale(1.1); }
+        .lang-btn.active { border-color: var(--primary); transform: scale(1.1); box-shadow: 0 0 10px var(--primary); }
+        
         .top-nav { background: #111; padding-bottom: 10px; border-bottom: 1px solid #222; position: sticky; top: 55px; z-index: 999; }
         .search-area { padding: 10px 15px; }
-        .search-bar { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: var(--card); color: #fff; box-sizing: border-box; outline: none; }
+        .search-bar { width: 100%; padding: 12px 15px; border-radius: 25px; border: 1px solid #333; background: var(--card); color: #fff; box-sizing: border-box; outline: none; transition: 0.3s; }
+
         .category-bar { display: flex; gap: 10px; overflow-x: auto; padding: 5px 15px 10px; scrollbar-width: none; }
-        .cat-btn { padding: 8px 18px; border-radius: 20px; border: 1px solid #333; background: transparent; color: #888; font-size: 12px; cursor: pointer; white-space: nowrap; transition: 0.3s; }
-        .cat-btn.active { background: var(--primary); color: #000; font-weight: bold; border-color: var(--primary); }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; }
-        .card { background: var(--card); padding: 10px; border-radius: 15px; border: 1px solid #222; animation: fadeIn 0.5s ease; }
-        .card img { width: 100%; aspect-ratio: 1/1; object-fit: contain; background: #000; border-radius: 10px; }
-        .slider-container { width: 100%; overflow-x: auto; display: flex; snap-type: x mandatory; scrollbar-width: none; border-radius: 15px; background: #000; }
+        .cat-btn { padding: 8px 20px; border-radius: 20px; border: 1px solid #333; background: #111; color: #888; font-size: 12px; cursor: pointer; white-space: nowrap; transition: 0.3s; }
+        .cat-btn.active { background: var(--primary); color: #000; font-weight: bold; border-color: var(--primary); transform: scale(1.05); }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px; }
+        .card { background: var(--card); padding: 10px; border-radius: 18px; border: 1px solid #222; transition: 0.3s; position: relative; overflow: hidden; animation: fadeIn 0.6s ease; }
+        .card img { width: 100%; aspect-ratio: 1/1; object-fit: contain; background: #000; border-radius: 12px; }
+        .price-tag { color: var(--primary); font-weight: bold; font-size: 14px; margin: 5px 0 10px; }
+
+        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; justify-content:center; align-items:center; backdrop-filter: blur(5px); }
+        .modal-content { background: #111; width: 90%; max-width: 400px; padding: 25px; border-radius: 25px; border: 1px solid #333; max-height: 85vh; overflow-y: auto; position: relative; animation: slideUp 0.4s ease; }
+        
+        .qr-box { text-align: center; display: none; margin-top: 15px; padding: 15px; background: #1a1a1a; border-radius: 15px; }
+        .qr-img { width: 180px; height: 180px; border-radius: 10px; border: 3px solid var(--primary); margin: 0 auto; display: block; }
+
+        .form-input { width: 100%; padding: 14px; margin-bottom: 12px; background: #1a1a1a; border: 1px solid #333; border-radius: 10px; color: #fff; box-sizing: border-box; outline: none; }
+        .buy-btn { width: 100%; padding: 14px; background: var(--primary); border: none; border-radius: 12px; font-weight: bold; cursor: pointer; color: #000; font-size: 15px; box-shadow: 0 4px 15px rgba(255, 149, 0, 0.3); }
+
+        .float-btn { position: fixed; bottom: 25px; right: 20px; width: 50px; height: 50px; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.4); z-index: 1500; text-decoration: none; animation: pulse 2s infinite; overflow: hidden; border: 2px solid var(--primary); background: #fff; }
+        .float-btn img { width: 100%; height: 100%; object-fit: cover; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(100px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 149, 0, 0.4); } 70% { box-shadow: 0 0 0 12px rgba(255, 149, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 149, 0, 0); } }
+
+        .slider-container { width: 100%; overflow-x: auto; display: flex; snap-type: x mandatory; scrollbar-width: none; border-radius: 18px; background: #000; }
         .slider-container img { min-width: 100%; aspect-ratio: 1/1; object-fit: contain; snap-align: start; }
-        
-        /* Modal Styling */
-        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:2000; justify-content:center; align-items:center; }
-        .modal-content { background: #111; width: 90%; max-width: 400px; padding: 20px; border-radius: 20px; border: 1px solid #333; max-height: 85vh; overflow-y: auto; position: relative;}
-        
-        /* Description Box */
-        .desc-box { background: #1a1a1a; padding: 12px; border-radius: 10px; border-left: 3px solid var(--primary); margin: 15px 0; font-size: 13px; color: #ccc; line-height: 1.6; }
-        
-        .opt-item { padding: 8px 12px; background: #222; border-radius: 8px; display: inline-block; margin: 4px; font-size: 12px; border: 1px solid #333; cursor: pointer; }
-        .opt-item.active { background: var(--primary); color: #000; border-color: #fff; }
-        .form-input { width: 100%; padding: 12px; margin-bottom: 10px; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; color: #fff; box-sizing: border-box; outline: none; }
-        .buy-btn { width: 100%; padding: 12px; background: var(--primary); border: none; border-radius: 10px; font-weight: bold; cursor: pointer; color: #000; transition: 0.2s; }
-        .pay-btn { flex: 1; padding: 12px; background: #222; border: 1px solid #333; border-radius: 8px; color: #fff; cursor: pointer; font-weight: bold; }
-        .pay-btn.active { background: var(--primary); color: #000; border-color: #fff; }
-        .qr-box { display: none; text-align: center; margin-top: 15px; background: var(--qr-bg); padding: 20px; border-radius: 15px; color: #fff; border: 1px solid #333; }
-        .qr-img { width: 180px; height: 180px; border-radius: 10px; border: 2px solid var(--primary); margin-top: 10px; }
-
-        /* Modern Slip Upload UI */
-        .upload-card { background: #1a1a1a; border: 2px dashed #444; padding: 25px 15px; text-align: center; border-radius: 15px; cursor: pointer; margin-top: 10px; transition: 0.3s; }
-        .upload-card:hover { border-color: var(--primary); background: #222; }
-        .upload-icon { font-size: 24px; color: var(--primary); margin-bottom: 8px; display: block; }
-        #fileNameDisplay { font-size: 12px; color: #4caf50; margin-top: 10px; font-weight: bold; display: block; background: rgba(76, 175, 80, 0.1); padding: 5px; border-radius: 5px; }
-        #slipFile { display: none; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .opt-item { padding: 8px 15px; background: #222; border-radius: 8px; display: inline-block; margin: 4px; font-size: 12px; border: 1px solid #333; cursor: pointer; transition: 0.2s; }
+        .opt-item.active { background: var(--primary); color: #000; font-weight: bold; }
+        .upload-card { background: #1a1a1a; border: 2px dashed #444; padding: 25px; text-align: center; border-radius: 15px; cursor: pointer; margin-top: 10px; }
     </style>
 </head>
 <body>
 
+<div id="splash">
+    <div class="loader"></div>
+    <p style="margin-top: 20px; font-weight: 600; color: var(--primary); letter-spacing: 2px;">HNIN SHOP</p>
+</div>
+
 <header>
-    <b id="ui-brand">နှင်း အွန်လိုင်းရှော့</b>
-    <div class="lang-switcher" style="display:flex; gap:8px;">
+    <b id="ui-brand" style="font-size: 18px; letter-spacing: 1px;">နှင်း အွန်လိုင်းရှော့</b>
+    <div class="lang-switcher" style="display:flex; gap:10px;">
         <img src="https://upload.wikimedia.org/wikipedia/commons/8/8c/Flag_of_Myanmar.svg" class="lang-btn active" id="btn-mm" onclick="setLang('mm')">
         <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Flag_of_the_United_Kingdom_%281-2%29.svg" class="lang-btn" id="btn-en" onclick="setLang('en')">
     </div>
@@ -73,56 +83,63 @@
 
 <div class="grid" id="productGrid"></div>
 
+<a href="https://t.me/arrdam06" class="float-btn" target="_blank" rel="noopener noreferrer">
+    <img src="https://i.postimg.cc/GmgX67YR/5713846d630704ce892f9c93944ba451.jpg" alt="Contact">
+</a>
+
 <div id="detailModal" class="modal">
     <div class="modal-content">
         <div id="slider" class="slider-container"></div>
-        <p style="text-align: center; font-size: 10px; color: #555; margin-top: 5px;">← Swipe →</p>
-        <h2 id="detTitle" style="margin:10px 0 5px;"></h2>
-        <div id="detPrice" style="color:var(--primary); font-weight:bold; font-size: 18px; margin-bottom: 10px;"></div>
-        
+        <p style="text-align: center; font-size: 10px; color: #555; margin-top: 8px;">• Swipe for more images •</p>
+        <h2 id="detTitle" style="margin:15px 0 5px; font-size: 20px;"></h2>
+        <div id="detPrice" style="color:var(--primary); font-weight:bold; font-size: 20px; margin-bottom: 15px;"></div>
         <div id="detDesc" class="desc-box"></div>
-
-        <div style="margin:15px 0;"><p id="ui-size-label" style="font-size:12px; color:var(--primary); margin-bottom:5px;">ဆိုဒ် ရွေးချယ်ပါ -</p><div id="sizeGroup"></div></div>
-        <div style="margin:15px 0;"><p id="ui-color-label" style="font-size:12px; color:var(--primary); margin-bottom:5px;">အရောင် ရွေးချယ်ပါ -</p><div id="colorGroup"></div></div>
-        
-        <button class="buy-btn" id="ui-continue" onclick="openOrder()">ဆက်လက်ဝယ်ယူရန်</button>
-        <button onclick="closeModal('detailModal')" id="ui-close" style="width:100%; background:none; border:none; color:#555; margin-top:10px; cursor:pointer;">ပိတ်မည်</button>
+        <div style="margin:15px 0;"><p id="ui-size-label" style="font-size:12px; color:var(--primary); margin-bottom:8px;">ဆိုဒ် ရွေးချယ်ပါ -</p><div id="sizeGroup"></div></div>
+        <div style="margin:15px 0;"><p id="ui-color-label" style="font-size:12px; color:var(--primary); margin-bottom:8px;">အရောင် ရွေးချယ်ပါ -</p><div id="colorGroup"></div></div>
+        <button class="buy-btn" id="ui-continue" onclick="openOrder()" style="margin-top: 10px;">ဝယ်ယူရန် ဆက်သွားမည်</button>
+        <button onclick="closeModal('detailModal')" id="ui-close" style="width:100%; background:none; border:none; color:#666; margin-top:15px; cursor:pointer;">ပြန်ထွက်မည်</button>
     </div>
 </div>
 
 <div id="orderModal" class="modal">
     <div class="modal-content">
-        <h3 id="ui-order-title" style="text-align:center; color:var(--primary); margin-bottom:20px;">မှာယူရန် အချက်အလက်များ</h3>
+        <h3 id="ui-order-title" style="text-align:center; color:var(--primary); margin-bottom:20px;">ပို့ဆောင်ရန် လိပ်စာဖြည့်ပါ</h3>
         <input type="text" id="orderName" class="form-input" placeholder="အမည်">
         <input type="number" id="orderPhone" class="form-input" placeholder="ဖုန်းနံပါတ်">
         <textarea id="orderAddress" class="form-input" placeholder="လိပ်စာ အပြည့်အစုံ" rows="3"></textarea>
         
         <div style="display:flex; gap:10px; margin-bottom:15px;">
-            <button class="pay-btn" id="payK" onclick="selectPay('KPay')">KPay</button>
-            <button class="pay-btn" id="payW" onclick="selectPay('Wave')">Wave</button>
+            <button class="pay-btn" id="payK" onclick="selectPay('KPay')" style="flex:1; padding:12px; border-radius:10px; border:1px solid #333; background:#222; color:#fff;">KPay</button>
+            <button class="pay-btn" id="payW" onclick="selectPay('Wave')" style="flex:1; padding:12px; border-radius:10px; border:1px solid #333; background:#222; color:#fff;">Wave</button>
         </div>
         
         <div id="qrSection" class="qr-box">
-            <div style="color:var(--primary); font-weight:bold; font-size:16px;">ZIN MYINT MYAT</div>
+            <div style="color:var(--primary); font-weight:bold; font-size:14px; margin-bottom:10px;">ZIN MYINT MYAT</div>
             <img id="qrImg" class="qr-img" src="">
         </div>
 
-        <p id="ui-slip-label" style="font-size:12px; color:#888; margin-top: 20px; margin-bottom: 8px;">ငွေလွှဲဖြတ်ပိုင်း (Slip) တင်ရန် -</p>
-        
-        <div class="upload-card" onclick="document.getElementById('slipFile').click()">
-            <span class="upload-icon">📷</span>
-            <span id="ui-upload-text" style="font-size: 13px; color: #aaa;">ငွေလွှဲဖြတ်ပိုင်း တင်ရန် နှိပ်ပါ</span>
-            <span id="fileNameDisplay" style="display:none;"></span>
+        <div class="upload-card" onclick="document.getElementById('slipFile').click()" style="margin-top:20px;">
+            <span id="ui-upload-text" style="color:#aaa; font-size: 13px;">ဒီနေရာကို နှိပ်ပြီး Slip တင်ပါ</span>
+            <span id="fileNameDisplay" style="display:none; color:var(--primary); font-size:12px;"></span>
         </div>
-        
-        <input type="file" id="slipFile" accept="image/*" onchange="updateFileName()">
+        <input type="file" id="slipFile" accept="image/*" onchange="updateFileName()" style="display:none;">
         
         <button class="buy-btn" id="ui-submit" style="margin-top:25px;" onclick="sendOrder()">အော်ဒါတင်မည်</button>
-        <button onclick="closeModal('orderModal')" id="ui-back" style="width:100%; background:none; border:none; color:#555; margin-top:10px; cursor:pointer;">နောက်သို့</button>
+        <button onclick="closeModal('orderModal')" id="ui-back" style="width:100%; background:none; border:none; color:#666; margin-top:15px; cursor:pointer;">နောက်သို့</button>
     </div>
 </div>
 
 <script>
+    window.onload = () => {
+        setTimeout(() => {
+            const splash = document.getElementById('splash');
+            if(splash) {
+                splash.style.opacity = '0';
+                setTimeout(() => splash.style.display = 'none', 500);
+            }
+        }, 1500);
+    };
+
     const firebaseConfig = { apiKey: "AIzaSyBI-5kPMdWzc3wsu-8gQYTGGJHGogE8_A0", databaseURL: "https://hnin-online-shop-default-rtdb.asia-southeast1.firebasedatabase.app" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
@@ -130,15 +147,15 @@
     let prods = {}, selItem = null, selS = "", selC = "", selP = "", curCat = "All", curLang = 'mm';
 
     const translations = {
-        mm: { brand: "နှင်း အွန်လိုင်းရှော့", search: "ရှာဖွေရန်...", all: "အားလုံး", tshirt: "တီရှပ်", hoodie: "ဟူဒီ", other: "တခြားပစ္စည်းများ", size: "ဆိုဒ် ရွေးချယ်ပါ -", color: "အရောင် ရွေးချယ်ပါ -", continue: "ဆက်လက်ဝယ်ယူရန်", close: "ပိတ်မည်", order: "မှာယူရန် အချက်အလက်များ", name: "အမည်", phone: "ဖုန်းနံပါတ်", addr: "လိပ်စာ အပြည့်အစုံ", slip: "ငွေလွှဲဖြတ်ပိုင်း (Slip) တင်ရန် -", submit: "အော်ဒါတင်မည်", back: "နောက်သို့", buy: "ဝယ်ယူမည်", upload: "ငွေလွှဲဖြတ်ပိုင်း တင်ရန် နှိပ်ပါ" },
-        en: { brand: "HNIN ONLINE SHOP", search: "Search products...", all: "All", tshirt: "T-Shirt", hoodie: "Hoodie", other: "Other Items", size: "Select Size -", color: "Select Color -", continue: "CONTINUE TO BUY", close: "Close", order: "ORDER DETAILS", name: "Name", phone: "Phone Number", addr: "Full Address", slip: "Upload Payment Slip -", submit: "CONFIRM ORDER", back: "Back", buy: "BUY NOW", upload: "Click to Upload Payment Slip" }
+        mm: { brand: "နှင်း အွန်လိုင်းရှော့", search: "ရှာဖွေရန်...", all: "အားလုံး", tshirt: "တီရှပ်", hoodie: "ဟူဒီ", other: "တခြားပစ္စည်းများ", size: "ဆိုဒ် ရွေးချယ်ပါ -", color: "အရောင် ရွေးချယ်ပါ -", continue: "ဝယ်ယူရန် ဆက်သွားမည်", close: "ပြန်ထွက်မည်", order: "ပို့ဆောင်ရန် လိပ်စာဖြည့်ပါ", name: "အမည်", phone: "ဖုန်းနံပါတ်", addr: "လိပ်စာ အပြည့်အစုံ", slip: "ငွေလွှဲဖြတ်ပိုင်း (Slip) တင်ပေးပါ -", submit: "အော်ဒါတင်မည်", back: "နောက်သို့", buy: "ဝယ်ယူမည်", upload: "ဒီနေရာကို နှိပ်ပြီး Slip တင်ပါ" },
+        en: { brand: "HNIN ONLINE SHOP", search: "Search products...", all: "All", tshirt: "T-Shirt", hoodie: "Hoodie", other: "Others", size: "Select Size -", color: "Select Color -", continue: "CONTINUE TO ORDER", close: "Close", order: "DELIVERY DETAILS", name: "Name", phone: "Phone Number", addr: "Full Address", slip: "Upload Transfer Slip -", submit: "CONFIRM ORDER", back: "Back", buy: "BUY NOW", upload: "Click here to upload slip" }
     };
 
     function updateFileName() {
         const file = document.getElementById('slipFile').files[0];
         const display = document.getElementById('fileNameDisplay');
-        if(file) {
-            display.innerText = "✓ " + file.name;
+        if(file && display) {
+            display.innerText = "✓ Selected: " + file.name;
             display.style.display = "block";
             document.getElementById('ui-upload-text').style.display = "none";
         }
@@ -162,35 +179,29 @@
         document.getElementById('orderName').placeholder = t.name;
         document.getElementById('orderPhone').placeholder = t.phone;
         document.getElementById('orderAddress').placeholder = t.addr;
-        document.getElementById('ui-slip-label').innerText = t.slip;
         document.getElementById('ui-upload-text').innerText = t.upload;
         document.getElementById('ui-submit').innerText = t.submit;
         document.getElementById('ui-back').innerText = t.back;
         render(); 
     }
 
-    db.ref('products').on('value', snap => { 
-        prods = snap.val() || {}; 
-        render(); 
-    });
+    db.ref('products').on('value', snap => { prods = snap.val() || {}; render(); });
 
     function render() {
         let q = document.getElementById('search').value.toLowerCase();
         let h = "";
         for(let id in prods) {
             let p = prods[id];
-            let prodCat = (p.category || "").toLowerCase();
-            let selectedCat = curCat.toLowerCase();
-            if ((q === "" || p.name.toLowerCase().includes(q)) && (selectedCat === "all" || prodCat === selectedCat)) {
+            if ((q === "" || p.name.toLowerCase().includes(q)) && (curCat === "All" || (p.category || "").toLowerCase() === curCat.toLowerCase())) {
                 h += `<div class="card" onclick="openDetail('${id}')">
-                    <img src="${p.imgs[0]}">
-                    <h3 style="font-size:14px; margin:8px 0; height:40px; overflow:hidden;">${p.name}</h3>
-                    <div style="color:var(--primary); font-weight:bold; margin-bottom:10px;">${Number(p.price).toLocaleString()} MMK</div>
-                    <button class="buy-btn" style="padding:8px; font-size:12px; width:100%;">${translations[curLang].buy}</button>
+                    <img src="${p.imgs[0]}" loading="lazy">
+                    <h3 style="font-size:14px; margin:10px 0 5px; height:40px; overflow:hidden;">${p.name}</h3>
+                    <div class="price-tag">${Number(p.price).toLocaleString()} MMK</div>
+                    <button class="buy-btn" style="padding:8px; font-size:12px;">${translations[curLang].buy}</button>
                 </div>`;
             }
         }
-        document.getElementById('productGrid').innerHTML = h || `<p style="text-align:center; width:100%; grid-column: 1/3; color:#555; margin-top:20px;">No items found.</p>`;
+        document.getElementById('productGrid').innerHTML = h;
     }
 
     function filterCat(btn, cat) {
@@ -204,12 +215,8 @@
         selItem = prods[id]; selS = ""; selC = "";
         document.getElementById('detTitle').innerText = selItem.name;
         document.getElementById('detPrice').innerText = Number(selItem.price).toLocaleString() + " MMK";
-        
-        // Product Description display
-        const descBox = document.getElementById('detDesc');
-        descBox.innerText = selItem.desc || "ပစ္စည်းအသေးစိတ်အချက်အလက်များကို မကြာမီဖော်ပြပေးပါမည်။";
-        
-        document.getElementById('slider').innerHTML = selItem.imgs.map(img => `<img src="${img}">`).join('');
+        document.getElementById('detDesc').innerText = selItem.desc || "ပစ္စည်းအသေးစိတ်...";
+        document.getElementById('slider').innerHTML = selItem.imgs.map(img => `<img src="${img}" loading="lazy">`).join('');
         
         let sizes = Array.isArray(selItem.sizes) ? selItem.sizes : (selItem.sizes ? selItem.sizes.split(',') : []);
         document.getElementById('sizeGroup').innerHTML = sizes.map(s => `<div class="opt-item" onclick="selS='${s.trim()}'; highlight(this)">${s.trim()}</div>`).join('');
@@ -227,65 +234,51 @@
 
     function selectPay(type) {
         selP = type;
-        document.getElementById('payK').classList.toggle('active', type === 'KPay');
-        document.getElementById('payW').classList.toggle('active', type === 'Wave');
+        document.querySelectorAll('.pay-btn').forEach(b => { b.style.background = "#222"; b.style.color = "#fff"; });
+        const btn = document.getElementById(type === 'KPay' ? 'payK' : 'payW');
+        if(btn) { btn.style.background = "var(--primary)"; btn.style.color = "#000"; }
         document.getElementById('qrSection').style.display = 'block';
         document.getElementById('qrImg').src = (type === 'KPay') ? "https://i.postimg.cc/YCHZd9SV/KPAY.jpg" : "https://i.postimg.cc/P5Qc9jL3/Wave.jpg";
     }
 
+    function openOrder() {
+        if(!selS || !selC) return alert("ကျေးဇူးပြု၍ ဆိုဒ်နှင့် အရောင် ရွေးချယ်ပေးပါ!");
+        closeModal('detailModal');
+        document.getElementById('orderModal').style.display = 'flex';
+    }
+
+    function closeModal(id) { 
+        const modal = document.getElementById(id);
+        if(modal) modal.style.display = 'none'; 
+    }
+
     async function sendOrder() {
-        const n = document.getElementById('orderName').value, 
-              p = document.getElementById('orderPhone').value, 
-              a = document.getElementById('orderAddress').value, 
-              slip = document.getElementById('slipFile').files[0];
-
-        if(!n || !p || !a || !selP || !slip) return alert("အချက်အလက်အားလုံး ဖြည့်စွက်ပေးပါ!");
+        const n = document.getElementById('orderName').value, p = document.getElementById('orderPhone').value, a = document.getElementById('orderAddress').value, slip = document.getElementById('slipFile').files[0];
+        if(!n || !p || !a || !selP || !slip) return alert("အချက်အလက်အားလုံး ဖြည့်ပေးပါ!");
         
-        const btn = document.getElementById('ui-submit'); 
-        btn.innerText = "Sending Order..."; btn.disabled = true;
+        const btn = document.getElementById('ui-submit'); if(btn) { btn.innerText = "တင်နေပါသည်..."; btn.disabled = true; }
 
-        const botToken = "8531584273:AAH0cO2A1Gr8dvX5uBjXa7sx0EwTVticn74";
-        const chatId = "7326800466";
-        const message = `🛍 *Order အသစ်ရရှိပါသည်!*\n\n` +
-                        `*ပစ္စည်း:* ${selItem.name}\n` +
-                        `*ဆိုဒ်:* ${selS || 'N/A'}\n` +
-                        `*အရောင်:* ${selC || 'N/A'}\n` +
-                        `*ဈေးနှုန်း:* ${Number(selItem.price).toLocaleString()} MMK\n\n` +
-                        `--- ဝယ်ယူသူအချက်အလက် ---\n` +
-                        `*အမည်:* ${n}\n` +
-                        `*ဖုန်း:* ${p}\n` +
-                        `*လိပ်စာ:* ${a}\n` +
-                        `*ငွေပေးချေမှု:* ${selP}`;
-
+        const message = `🛍 *Order အသစ်ရရှိပါသည်!*\n\n*ပစ္စည်း:* ${selItem.name}\n*ဆိုဒ်:* ${selS}\n*အရောင်:* ${selC}\n*ဈေးနှုန်း:* ${Number(selItem.price).toLocaleString()} MMK\n\n*ဝယ်ယူသူ:* ${n}\n*ဖုန်း:* ${p}\n*လိပ်စာ:* ${a}\n*Payment:* ${selP}`;
+        
         const formData = new FormData();
-        formData.append("chat_id", chatId);
+        formData.append("chat_id", "7326800466");
         formData.append("photo", slip);
         formData.append("caption", message);
         formData.append("parse_mode", "Markdown");
 
         try {
-            const teleRes = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
-                method: 'POST',
-                body: formData
-            });
-
-            if(teleRes.ok) {
-                alert("အော်ဒါတင်ခြင်း အောင်မြင်ပါသည်!"); 
+            const response = await fetch(`https://api.telegram.org/bot8531584273:AAH0cO2A1Gr8dvX5uBjXa7sx0EwTVticn74/sendPhoto`, { method: 'POST', body: formData });
+            if(response.ok) {
+                alert("Order အောင်မြင်ပါတယ်!"); 
                 location.reload();
             } else {
-                throw new Error("Telegram Error");
+                throw new Error("Telegram API Error");
             }
         } catch(e) { 
-            alert("အော်ဒါတင်ခြင်း မအောင်မြင်ပါ။ ပြန်လည်ကြိုးစားပေးပါ။"); 
-            btn.innerText = "အော်ဒါတင်မည်"; btn.disabled = false;
+            alert("Error! ပုံတင်မရပါ သို့မဟုတ် လိုင်းမကောင်းပါ။"); 
+            if(btn) { btn.innerText = "အော်ဒါတင်မည်"; btn.disabled = false; }
         }
     }
-
-    function openOrder() { 
-        document.getElementById('detailModal').style.display='none'; 
-        document.getElementById('orderModal').style.display='flex'; 
-    }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 </script>
 </body>
 </html>
