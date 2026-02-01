@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="my">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR DAN SHOP - USER APP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root { --bg: #181C1F; --card: #21262B; --accent: #00D1FF; --sub: #A0A0A0; --danger: #FF4D4D; --success: #00FF94; }
+        body { background: var(--bg); color: #fff; font-family: 'Poppins'; margin: 0; user-select: none; overflow-x: hidden; }
+        
+        /* Sticky Header */
+        .top-bar { position: sticky; top: 0; background: var(--bg); z-index: 100; padding-bottom: 5px; border-bottom: 1px solid #222; }
+        .header { padding: 20px 20px 10px; display: flex; justify-content: space-between; align-items: center; }
+        .app-name { font-family: 'Orbitron'; color: var(--accent); font-size: 20px; margin: 0; }
+        
+        /* Notification Icon & Panel */
+        .noti-icon-box { position: relative; cursor: pointer; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--card); border-radius: 12px; border: 1px solid #333; }
+        .noti-dot { position: absolute; top: 10px; right: 10px; width: 8px; height: 8px; background: var(--danger); border-radius: 50%; display: none; border: 2px solid var(--bg); box-shadow: 0 0 10px var(--danger); }
+
+        #notiOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; display: none; justify-content: flex-end; backdrop-filter: blur(5px); }
+        .noti-panel { width: 85%; max-width: 400px; background: var(--bg); height: 100%; animation: slideRight 0.3s ease-out; display: flex; flex-direction: column; border-left: 1px solid #333; }
+        .noti-header { padding: 25px 20px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #222; background: var(--card); }
+        .noti-list { flex: 1; overflow-y: auto; padding: 20px; }
+        .noti-item { background: var(--card); padding: 15px; border-radius: 16px; margin-bottom: 12px; border: 1px solid #333; position: relative; animation: fadeIn 0.4s; }
+        .noti-item::before { content: ''; position: absolute; left: 0; top: 20%; height: 60%; width: 4px; background: var(--accent); border-radius: 0 4px 4px 0; }
+
+        /* Filter UI */
+        .filter-section { display: flex; flex-direction: column; gap: 10px; padding: 10px 0; }
+        .filter-row { display: flex; gap: 10px; padding: 0 20px; overflow-x: auto; scrollbar-width: none; }
+        .filter-row::-webkit-scrollbar { display: none; }
+        .cat-btn { background: var(--card); padding: 8px 18px; border-radius: 20px; font-size: 11px; border: 1px solid #333; white-space: nowrap; cursor: pointer; transition: 0.3s; color: var(--sub); }
+        .cat-btn.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; box-shadow: 0 0 10px rgba(0,209,255,0.3); }
+
+        /* Account Grid */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 15px 15px 100px; }
+        .acc-card { background: var(--card); border-radius: 16px; overflow: hidden; border: 1px solid #333; position: relative; animation: fadeIn 0.4s; }
+        .img-box { width: 100%; height: 125px; background: #2D3339; position: relative; }
+        .img-box img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .sold-badge { position: absolute; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 5; backdrop-filter: blur(2px); }
+        .sold-text { background: var(--danger); color: white; padding: 4px 12px; font-weight: bold; font-family: 'Orbitron'; font-size: 10px; border-radius: 4px; transform: rotate(-12deg); border: 2px solid white; box-shadow: 0 0 15px rgba(255,77,77,0.4); }
+        .badge { position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.6); font-size: 9px; padding: 2px 8px; border-radius: 6px; color: var(--accent); border: 1px solid var(--accent); z-index: 2; text-transform: uppercase; }
+
+        /* Account Detail Overlay & Slider */
+        #detailOverlay { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: none; overflow-y: auto; }
+        .slider-container { position: relative; width: 100%; height: 260px; background: #000; overflow: hidden; }
+        .slider-img { width: 100%; height: 100%; object-fit: contain; display: none; }
+        .slider-img.active { display: block; animation: fadeIn 0.3s; }
+        
+        /* Image Slider Arrows */
+        .slider-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 35px; height: 35px; background: rgba(0, 209, 255, 0.8); color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10; cursor: pointer; border: 2px solid #fff; font-size: 14px; }
+        .slider-arrow.left { left: 15px; }
+        .slider-arrow.right { right: 15px; }
+
+        /* Slider Dots */
+        .dots-container { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 10; }
+        .dot { width: 7px; height: 7px; background: rgba(255,255,255,0.3); border-radius: 50%; transition: 0.3s; }
+        .dot.active { width: 20px; background: var(--accent); border-radius: 10px; }
+
+        /* Feedback UI */
+        .feedback-box { border: 1px dashed var(--accent); border-radius: 12px; padding: 15px; margin: 20px 0; background: rgba(0, 209, 255, 0.03); }
+        .fb-header { color: var(--accent); font-weight: bold; font-size: 12px; display: flex; align-items: center; gap: 8px; margin-bottom: 12px; text-transform: uppercase; }
+        .fb-slider-container { position: relative; width: 100%; border-radius: 10px; overflow: hidden; background: #000; height: 380px; display: flex; align-items: center; border: 1px solid #333; }
+        .fb-img { width: 100%; height: 100%; object-fit: contain; display: none; }
+        .fb-img.active { display: block; }
+        .fb-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 32px; height: 32px; background: var(--accent); color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; z-index: 10; cursor: pointer; border: 2px solid #fff; }
+        
+        .fb-dots { display: flex; justify-content: center; gap: 5px; margin-top: 12px; }
+        .fb-dot { width: 6px; height: 6px; background: rgba(255,255,255,0.2); border-radius: 50%; transition: 0.3s; }
+        .fb-dot.active { width: 16px; background: var(--accent); border-radius: 10px; }
+
+        /* Specs Grid */
+        .spec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; }
+        .spec-card { background: var(--card); border: 1px solid #333; padding: 12px; border-radius: 12px; text-align: center; }
+        .spec-card small { color: var(--sub); font-size: 10px; text-transform: uppercase; display: block; margin-bottom: 2px; }
+        .buy-btn { width: 100%; padding: 16px; background: var(--accent); color: #000; border: none; border-radius: 14px; font-weight: bold; font-size: 16px; margin-top: 10px; box-shadow: 0 4px 15px rgba(0,209,255,0.2); }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <div class="header">
+            <h1 class="app-name">AR DAN SHOP</h1>
+            <div class="noti-icon-box" onclick="openNoti()">
+                <i class="fas fa-bell" style="color: var(--sub); font-size: 18px;"></i>
+                <div id="notiDot" class="noti-dot"></div>
+            </div>
+        </div>
+
+        <div class="search-container" style="margin: 0 20px 10px; position: relative;">
+            <i class="fas fa-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--sub); font-size: 14px;"></i>
+            <input type="text" placeholder="Search accounts..." onkeyup="searchAcc(this.value)" style="width: 100%; background: var(--card); padding: 10px 15px 10px 40px; border-radius: 12px; border: 1px solid #333; color: #fff; outline: none; box-sizing: border-box; font-size: 13px;">
+        </div>
+
+        <div class="filter-section">
+            <div class="filter-row">
+                <div class="cat-btn active" onclick="filterData('All', this)">All Accounts</div>
+                <div class="cat-btn" onclick="filterData('Global', this)">Global</div>
+                <div class="cat-btn" onclick="filterData('KR', this)">KR Version</div>
+                <div class="cat-btn" onclick="filterData('VNG', this)">VNG</div>
+            </div>
+            <div class="filter-row">
+                <div class="cat-btn" onclick="sortData('high', this)"><i class="fas fa-sort-amount-up"></i> High to Low</div>
+                <div class="cat-btn" onclick="sortData('low', this)"><i class="fas fa-sort-amount-down"></i> Low to High</div>
+                <div class="cat-btn" onclick="sortData('new', this)">Latest</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notiOverlay" onclick="closeNoti()">
+        <div class="noti-panel" onclick="event.stopPropagation()">
+            <div class="noti-header">
+                <i class="fas fa-chevron-right" onclick="closeNoti()" style="color: var(--accent); cursor: pointer;"></i>
+                <span style="font-weight: 600; font-size: 18px; font-family: 'Orbitron'; color: var(--accent);">Notifications</span>
+            </div>
+            <div class="noti-list" id="notiList">
+                <div style="text-align: center; margin-top: 50px; color: var(--sub);">
+                    <i class="fas fa-bell-slash" style="font-size: 40px; margin-bottom: 10px; opacity: 0.3;"></i>
+                    <p>No notifications yet</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid" id="accGrid"></div>
+
+    <div id="detailOverlay">
+        <div style="padding: 15px 20px; display: flex; align-items: center; gap: 15px; background: #21262B; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #333;">
+            <i class="fas fa-arrow-left" onclick="closeDetail()" style="font-size: 18px; cursor: pointer;"></i>
+            <span id="topHeader" style="font-weight: 600; font-size: 15px;">Account Detail</span>
+        </div>
+
+        <div class="slider-container">
+            <div class="slider-arrow left" onclick="changeImg(-1)"><i class="fas fa-chevron-left"></i></div>
+            <div class="slider-arrow right" onclick="changeImg(1)"><i class="fas fa-chevron-right"></i></div>
+            <div id="slides" style="height: 100%;"></div>
+            <div class="dots-container" id="dots"></div>
+        </div>
+
+        <div style="padding: 20px;">
+            <span id="dPrice" style="color: var(--accent); font-size: 26px; font-weight: bold; display: block;"></span>
+            <h2 id="dTitle" style="margin: 5px 0 20px; font-size: 18px;"></h2>
+
+            <div id="feedbackArea"></div>
+
+            <div class="spec-grid">
+                <div class="spec-card"><small>Level</small><span id="dLv"></span></div>
+                <div class="spec-card"><small>Rank</small><span id="dRank"></span></div>
+                <div class="spec-card"><small>Version</small><span id="dVer"></span></div>
+                <div class="spec-card"><small>Status</small><span id="dStat"></span></div>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: var(--accent); font-size: 13px; text-transform: uppercase;">Description</h3>
+                <p id="dDesc" style="color: var(--sub); font-size: 13px; line-height: 1.7;"></p>
+            </div>
+
+            <button id="buyBtn" class="buy-btn" onclick="alert('Contacting Admin...')"></button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDjwyOXJk6pK1zSXNN3m4tGk-o2UbqwQmk",
+            authDomain: "arrdam-da7aa.firebaseapp.com",
+            projectId: "arrdam-da7aa",
+            storageBucket: "arrdam-da7aa.firebasestorage.app",
+            messagingSenderId: "1056284209909",
+            appId: "1:1056284209909:web:9ea31114c4e8c49931cbbc"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Noti Listener
+        onSnapshot(query(collection(db, "notifications"), orderBy("createdAt", "desc")), (snap) => {
+            const list = document.getElementById('notiList');
+            const dot = document.getElementById('notiDot');
+            if (!snap.empty) {
+                dot.style.display = 'block';
+                list.innerHTML = snap.docs.map(doc => {
+                    const n = doc.data();
+                    const time = n.createdAt ? new Date(n.createdAt.toDate()).toLocaleDateString() : 'Just now';
+                    return `
+                        <div class="noti-item">
+                            <small style="color: var(--accent); font-size: 10px; font-weight: bold;">${time}</small>
+                            <p style="margin: 8px 0 0; font-size: 13px; color: #fff;">${n.message}</p>
+                        </div>
+                    `;
+                }).join('');
+            }
+        });
+
+        // Accounts Listener
+        let rawData = [];
+        onSnapshot(query(collection(db, "accounts"), orderBy("createdAt", "desc")), (snap) => {
+            rawData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            window.allAccs = rawData;
+            renderCards(window.allAccs);
+        });
+
+        window.renderCards = (data) => {
+            document.getElementById('accGrid').innerHTML = data.map(acc => `
+                <div class="acc-card" onclick='showDetail(${JSON.stringify(acc)})'>
+                    ${acc.status === "Sold Out" ? '<div class="sold-badge"><div class="sold-text">SOLD OUT</div></div>' : ''}
+                    <div class="img-box">
+                        <div class="badge">${acc.rank}</div>
+                        <img src="${acc.images[0]}" loading="lazy">
+                    </div>
+                    <div style="padding:12px;">
+                        <span style="font-size:12px; font-weight:600; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#ddd;">${acc.title}</span>
+                        <span style="color:var(--accent); font-weight:bold; font-size:14px;">${Number(acc.price).toLocaleString()} K</span>
+                    </div>
+                </div>
+            `).join('');
+        };
+    </script>
+
+    <script>
+        let curImg = 0; let imgs = [];
+        let curFb = 0; let fbs = [];
+
+        window.searchAcc = (val) => renderCards(allAccs.filter(a => a.title.toLowerCase().includes(val.toLowerCase())));
+        window.filterData = (cat, btn) => {
+            setActive(btn);
+            renderCards(cat === 'All' ? allAccs : allAccs.filter(a => a.cat === cat));
+        };
+        window.sortData = (type, btn) => {
+            setActive(btn);
+            let sorted = [...allAccs];
+            if(type === 'high') sorted.sort((a,b) => b.price - a.price);
+            else if(type === 'low') sorted.sort((a,b) => a.price - b.price);
+            renderCards(sorted);
+        };
+        function setActive(btn) {
+            btn.parentElement.parentElement.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function showDetail(acc) {
+            imgs = acc.images; curImg = 0;
+            const isSold = acc.status === "Sold Out";
+            document.getElementById('topHeader').innerText = isSold ? "Account Sold" : "Account Detail";
+            document.getElementById('dPrice').innerText = Number(acc.price).toLocaleString() + " K";
+            document.getElementById('dTitle').innerText = acc.title;
+            document.getElementById('dLv').innerText = acc.level;
+            document.getElementById('dRank').innerText = acc.rank;
+            document.getElementById('dVer').innerText = acc.cat;
+            document.getElementById('dStat').innerText = acc.status;
+            document.getElementById('dStat').style.color = isSold ? "var(--danger)" : "var(--success)";
+            document.getElementById('dDesc').innerText = acc.desc;
+            
+            const btn = document.getElementById('buyBtn');
+            btn.innerText = isSold ? "ALREADY SOLD" : "BUY NOW";
+            btn.style.opacity = isSold ? "0.5" : "1";
+            btn.disabled = isSold;
+
+            const fbArea = document.getElementById('feedbackArea');
+            if (isSold && acc.feedbackImages?.length > 0) {
+                fbs = acc.feedbackImages; curFb = 0;
+                fbArea.innerHTML = `
+                    <div class="feedback-box">
+                        <div class="fb-header"><i class="fas fa-check-circle"></i> Verified Feedback</div>
+                        <span style="display:block; margin-bottom:15px; font-size:13px; color:#eee; font-style:italic;">"${acc.feedback || 'ရောင်းချပြီးပါပြီ'}"</span>
+                        <div class="fb-slider-container">
+                            ${fbs.length > 1 ? `<div class="fb-arrow" style="left:10px" onclick="changeFb(-1)"><i class="fas fa-chevron-left"></i></div>
+                            <div class="fb-arrow" style="right:10px" onclick="changeFb(1)"><i class="fas fa-chevron-right"></i></div>`:''}
+                            ${fbs.map((src, i) => `<img src="${src}" class="fb-img ${i===0?'active':''}">`).join('')}
+                        </div>
+                        <div class="fb-dots">${fbs.map((_, i) => `<div class="fb-dot ${i===0?'active':''}"></div>`).join('')}</div>
+                    </div>
+                `;
+            } else { fbArea.innerHTML = ""; }
+
+            updateSlider();
+            document.getElementById('detailOverlay').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function updateSlider() {
+            document.getElementById('slides').innerHTML = imgs.map((s, i) => `<img src="${s}" class="slider-img ${i===0?'active':''}">`).join('');
+            document.getElementById('dots').innerHTML = imgs.map((_, i) => `<div class="dot ${i===0?'active':''}"></div>`).join('');
+        }
+
+        window.changeImg = (dir) => {
+            const sImgs = document.querySelectorAll('.slider-img');
+            const sDots = document.querySelectorAll('.dot');
+            if(sImgs.length <= 1) return;
+            sImgs[curImg].classList.remove('active');
+            sDots[curImg].classList.remove('active');
+            curImg = (curImg + dir + imgs.length) % imgs.length;
+            sImgs[curImg].classList.add('active');
+            sDots[curImg].classList.add('active');
+        };
+
+        window.changeFb = (dir) => {
+            const fImgs = document.querySelectorAll('.fb-img');
+            const fDots = document.querySelectorAll('.fb-dot');
+            fImgs[curFb].classList.remove('active');
+            fDots[curFb].classList.remove('active');
+            curFb = (curFb + dir + fbs.length) % fbs.length;
+            fImgs[curFb].classList.add('active');
+            fDots[curFb].classList.add('active');
+        };
+
+        function closeDetail() { document.getElementById('detailOverlay').style.display = 'none'; document.body.style.overflow = 'auto'; }
+        function openNoti() { document.getElementById('notiOverlay').style.display = 'flex'; document.getElementById('notiDot').style.display = 'none'; }
+        function closeNoti() { document.getElementById('notiOverlay').style.display = 'none'; }
+    </script>
+</body>
+</html>
